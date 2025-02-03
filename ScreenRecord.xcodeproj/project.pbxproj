@@ -6,13 +6,32 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		B54CF8C12D4E474B00F3B3B8 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = B54CF8C02D4E474B00F3B3B8 /* README.md */; };
+		B57E8E6C2D4E586700E53731 /* Appwrite in Frameworks */ = {isa = PBXBuildFile; productRef = B57E8E6B2D4E586700E53731 /* Appwrite */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
+		B54CF8C02D4E474B00F3B3B8 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		B5CA95562D4E057D0008D960 /* ScreenRecord.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScreenRecord.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		B57E8E722D4E592700E53731 /* Exceptions for "ScreenRecord" folder in "ScreenRecord" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = B5CA95552D4E057D0008D960 /* ScreenRecord */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		B5CA95582D4E057D0008D960 /* ScreenRecord */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B57E8E722D4E592700E53731 /* Exceptions for "ScreenRecord" folder in "ScreenRecord" target */,
+			);
 			path = ScreenRecord;
 			sourceTree = "<group>";
 		};
@@ -23,6 +42,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B57E8E6C2D4E586700E53731 /* Appwrite in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -34,6 +54,7 @@
 			children = (
 				B5CA95582D4E057D0008D960 /* ScreenRecord */,
 				B5CA95572D4E057D0008D960 /* Products */,
+				B54CF8C02D4E474B00F3B3B8 /* README.md */,
 			);
 			sourceTree = "<group>";
 		};
@@ -65,6 +86,7 @@
 			);
 			name = ScreenRecord;
 			packageProductDependencies = (
+				B57E8E6B2D4E586700E53731 /* Appwrite */,
 			);
 			productName = ScreenRecord;
 			productReference = B5CA95562D4E057D0008D960 /* ScreenRecord.app */;
@@ -94,6 +116,9 @@
 			);
 			mainGroup = B5CA954D2D4E057D0008D960;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				B57E8E6A2D4E586700E53731 /* XCRemoteSwiftPackageReference "sdk-for-apple" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = B5CA95572D4E057D0008D960 /* Products */;
 			projectDirPath = "";
@@ -109,6 +134,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B54CF8C12D4E474B00F3B3B8 /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -257,11 +283,14 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ScreenRecord/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.video";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = testing.ScreenRecord;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -284,11 +313,14 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ScreenRecord/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.video";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = testing.ScreenRecord;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -319,6 +351,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		B57E8E6A2D4E586700E53731 /* XCRemoteSwiftPackageReference "sdk-for-apple" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/appwrite/sdk-for-apple";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B57E8E6B2D4E586700E53731 /* Appwrite */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B57E8E6A2D4E586700E53731 /* XCRemoteSwiftPackageReference "sdk-for-apple" */;
+			productName = Appwrite;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = B5CA954E2D4E057D0008D960 /* Project object */;
 }
