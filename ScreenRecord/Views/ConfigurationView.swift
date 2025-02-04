@@ -1,10 +1,3 @@
-/*
- See the LICENSE.txt file for this sample’s licensing information.
- 
- Abstract:
- A view that provides the UI to configure screen capture.
- */
-
 import SwiftUI
 import ScreenCaptureKit
 
@@ -169,15 +162,14 @@ struct ConfigurationView: View {
                 Text("\(screenRecorder.recordingOutputPath!)")
                 Spacer()
                     .frame(height: 20)
-                VStack(spacing: 20){
+                VStack(alignment: .leading){
                     Text("Global Mouse Tracking")
                         .font(.headline)
                     Text("Mouse Location: \(Int(mouseTracker.mouseLocation.x)), \(Int(mouseTracker.mouseLocation.y))")
-                        .padding()
                 }
                 Spacer()
-                    .frame(height: 20)
-                VStack{
+                    .frame(height: 10)
+                VStack(alignment: .leading){
                     Button("View Recordings", systemImage: "folder.fill", action: screenRecorder.openRecordingFolder)
                     
                     Button("Change Folder", systemImage: "folder.badge.plus", action: screenRecorder.changeRecordingFolder)

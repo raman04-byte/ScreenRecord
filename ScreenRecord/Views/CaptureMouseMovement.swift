@@ -19,7 +19,6 @@ class GlobalMouseTracker: ObservableObject {
             // Update on the main thread.
             DispatchQueue.main.async {
                 self?.mouseLocation = currentLocation
-                print("Global mouse moved to: \(currentLocation)")
             }
         }
     }

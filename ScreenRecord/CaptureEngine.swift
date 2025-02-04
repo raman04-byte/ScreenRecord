@@ -1,9 +1,3 @@
-/*
-See the LICENSE.txt file for this sample’s licensing information.
-
-Abstract:
-An object that captures a stream of captured sample buffers containing screen and audio content.
-*/
 import Foundation
 import AVFAudio
 import ScreenCaptureKit

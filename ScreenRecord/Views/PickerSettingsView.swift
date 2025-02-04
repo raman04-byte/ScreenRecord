@@ -1,10 +1,3 @@
-/*
-See the LICENSE.txt file for this sample’s licensing information.
-
-Abstract:
-A view for content picker configuration.
-*/
-
 import SwiftUI
 import ScreenCaptureKit
 

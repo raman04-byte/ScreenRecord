@@ -15,5 +15,9 @@
 			</array>
 		</dict>
 	</array>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Microphone to record your audio</string>
+    <key>NSScreenCaptureDescription</key>
+    <string>To Record Screen</string>
 </dict>
 </plist>

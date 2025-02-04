@@ -1,10 +1,3 @@
-/*
-See the LICENSE.txt file for this sample’s licensing information.
-
-Abstract:
-A view that renders an audio level meter.
-*/
-
 import Foundation
 import SwiftUI
 

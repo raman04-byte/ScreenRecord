@@ -1,10 +1,3 @@
-/*
-See the LICENSE.txt file for this sample’s licensing information.
-
-Abstract:
-A wrapper view around NSVisualEffectView.
-*/
-
 import SwiftUI
 
 struct MaterialView: NSViewRepresentable {

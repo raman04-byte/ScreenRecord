@@ -1,9 +1,3 @@
-/*
- See the LICENSE.txt file for this sample’s licensing information.
- 
- Abstract:
- A model object that provides the interface to capture screen content and system audio.
- */
 import Foundation
 @preconcurrency import ScreenCaptureKit
 import Combine
@@ -85,7 +79,11 @@ class ScreenRecorder: NSObject,
     @Published var selectedDynamicRangePreset: DynamicRangePreset? {
         didSet { updateEngine() }
     }
+    /// The current size of the captured content.
     @Published var contentSize = CGSize(width: 1, height: 1)
+    /// NEW: The crop rectangle used to limit the captured region.
+    @Published var cropRect: CGRect?
+    
     private var scaleFactor: Int { Int(NSScreen.main?.backingScaleFactor ?? 2) }
     
     /// A view that renders the screen content.
@@ -216,7 +214,7 @@ class ScreenRecorder: NSObject,
             setPickerUpdate(false)
             // Start the stream and await new video frames.
             for try await frame in captureEngine.startCapture(configuration: config, filter: filter) {
-                capturePreview.updateFrame(frame)
+                capturePreview.updateFrame(frame, cropRect: cropRect)
                 if contentSize != frame.size {
                     // Update the content size if it changed.
                     contentSize = frame.size
@@ -261,9 +259,6 @@ class ScreenRecorder: NSObject,
                 // Update your recording output path.
                 self.recordingOutputPath = folderURL.path
                 logger.log("Recording folder changed to: \(self.recordingOutputPath!)")
-                
-                // Optionally, you could immediately open the selected folder in Finder:
-                // NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: self.recordingOutputPath!)
             }
         }
     }
@@ -287,7 +282,6 @@ class ScreenRecorder: NSObject,
         streamConfiguration.captureMicrophone = false
         streamConfiguration.microphoneCaptureDeviceID = nil
     }
-    
     
     private func initRecordingOutput() throws {
         dateFormatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
@@ -334,6 +328,22 @@ class ScreenRecorder: NSObject,
         }
     }
     
+    func updateCropRect(_ rect: CGRect?) async {
+        self.cropRect = rect
+        
+        if captureType == .display, let display = selectedDisplay {
+            self.contentSize = CGSize(width: display.width, height: display.height)
+        }
+        
+        // Reconfigure the running stream if needed:
+        if isRunning {
+            let filter = contentFilter
+            await captureEngine.update(configuration: streamConfiguration, filter: filter)
+            setPickerUpdate(false)
+        }
+    }
+    
+    
     // MARK: - Content-sharing Picker
     private func initializePickerConfiguration() {
         var initialConfiguration = SCContentSharingPickerConfiguration()
@@ -347,7 +357,6 @@ class ScreenRecorder: NSObject,
         ]
         self.allowedPickingModes = initialConfiguration.allowedPickerModes
     }
-    
     
     private func updatePickerConfiguration() {
         self.screenRecorderPicker.maximumStreamCount = maximumStreamCount
@@ -429,7 +438,6 @@ class ScreenRecorder: NSObject,
     }
     
     private var streamConfiguration: SCStreamConfiguration {
-        
         var streamConfig = SCStreamConfiguration()
         
         if let dynamicRangePreset = selectedDynamicRangePreset?.scDynamicRangePreset {
@@ -489,11 +497,8 @@ class ScreenRecorder: NSObject,
     
     private func filterWindows(_ windows: [SCWindow]) -> [SCWindow] {
         windows
-        // Sort the windows by app name.
             .sorted { $0.owningApplication?.applicationName ?? "" < $1.owningApplication?.applicationName ?? "" }
-        // Remove windows that don't have an associated .app bundle.
             .filter { $0.owningApplication != nil && $0.owningApplication?.applicationName != "" }
-        // Remove this app's window from the list.
             .filter { $0.owningApplication?.bundleIdentifier != Bundle.main.bundleIdentifier }
     }
 }

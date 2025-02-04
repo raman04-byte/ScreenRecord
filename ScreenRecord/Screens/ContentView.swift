@@ -6,17 +6,18 @@
 //
 
 import SwiftUI
-import ScreenCaptureKit
-import OSLog
-import Combine
+import AppKit
 
 struct ContentView: View {
-    
     @State var userStopped = false
     @State var disableInput = false
     @State var isUnauthorized = false
-    
+
     @StateObject var screenRecorder = ScreenRecorder()
+    @StateObject var mouseTracker = GlobalMouseTracker()
+    
+    // This state will track whether Command is pressed.
+    @State private var isCommandPressed = false
     
     var body: some View {
         HSplitView {
@@ -39,7 +40,7 @@ struct ContentView: View {
         }
         .overlay {
             if isUnauthorized {
-                VStack() {
+                VStack {
                     Spacer()
                     VStack {
                         Text("No screen recording permission.")
@@ -51,7 +52,6 @@ struct ContentView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .background(.red)
-                    
                 }
             }
         }
@@ -65,13 +65,41 @@ struct ContentView: View {
                     disableInput = true
                 }
             }
+            // Monitor Command key changes.
+            NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { event in
+                let commandDown = event.modifierFlags.contains(.shift)
+                if commandDown != isCommandPressed {
+                    isCommandPressed = commandDown
+                    if commandDown {
+                        // When Command is pressed, update the crop region using the current mouse location.
+                        let mouseLocation = NSEvent.mouseLocation
+                        let cropRect = CGRect(x: mouseLocation.x - 150, y: mouseLocation.y - 150, width: 300, height: 300)
+                        Task {
+                            await screenRecorder.updateCropRect(cropRect)
+                        }
+                    } else {
+                        // When Command is released, reset to full screen.
+                        Task {
+                            await screenRecorder.updateCropRect(nil)
+                        }
+                    }
+                }
+                return event
+            }
+        }
+        // Update the crop region continuously as the mouse moves, but only when Command is pressed.
+        .onChange(of: mouseTracker.mouseLocation) { newLocation in
+            if isCommandPressed {
+                let cropRect = CGRect(x: newLocation.x - 150, y: newLocation.y - 150, width: 300, height: 300)
+                Task {
+                    await screenRecorder.updateCropRect(cropRect)
+                }
+            }
         }
     }
 }
-
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
     }
 }
-
