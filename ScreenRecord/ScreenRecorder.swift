@@ -337,8 +337,7 @@ class ScreenRecorder: NSObject,
         
         // Reconfigure the running stream if needed:
         if isRunning {
-            let filter = contentFilter
-            await captureEngine.update(configuration: streamConfiguration, filter: filter)
+            await captureEngine.update(configuration: streamConfiguration, filter: contentFilter)
             setPickerUpdate(false)
         }
     }
