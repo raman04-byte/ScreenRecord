@@ -69,35 +69,56 @@ struct ScreenRecording: View {
                 if shiftDown != isShiftDown {
                     isShiftDown = shiftDown
                     if shiftDown {
-                        let mouseLocation = NSEvent.mouseLocation
-                        let cropRect = CGRect(x: mouseLocation.x - 150, y: mouseLocation.y - 150, width: 300, height: 300)
-                        Task {
-                            await screenRecorder.updateCropRect(cropRect)
-                        }
+                        updateCropForCurrentMouse()
                     } else {
                         Task {
                             await screenRecorder.updateCropRect(nil)
                         }
                     }
                 }
-                
             }
         }
         .onChange(of: mouseTracker.mouseLocation) {
             if isShiftDown {
-                let cropRect = CGRect(
-                    x: mouseTracker.mouseLocation.x - 150,
-                    y: mouseTracker.mouseLocation.y - 150,
-                    width: 300,
-                    height: 300
-                )
-                Task {
-                    await screenRecorder.updateCropRect(cropRect)
-                }
+                updateCropForCurrentMouse()
             }
         }
-
     }
+    
+    private func updateCropForCurrentMouse() {
+    guard let mainScreen = NSScreen.main else { return }
+    
+    let mouseLocation = mouseTracker.mouseLocation
+    let scaleFactor = mainScreen.backingScaleFactor
+    
+    // CRITICAL: NSEvent.mouseLocation has origin at BOTTOM-LEFT
+    // Screen capture has origin at TOP-LEFT
+    // We must flip the Y coordinate!
+    
+    let screenHeight = mainScreen.frame.height
+    
+    // Flip Y coordinate to convert from bottom-left to top-left origin
+    let flippedMouseY = screenHeight - mouseLocation.y
+    
+    // Scale the crop size and position for retina displays
+    let cropSize: CGFloat = 300 * scaleFactor
+    let halfSize = cropSize / 2
+    
+    // Scale mouse coordinates to match the backing store resolution
+    let scaledMouseX = mouseLocation.x * scaleFactor
+    let scaledMouseY = flippedMouseY * scaleFactor
+    
+    let cropRect = CGRect(
+        x: scaledMouseX - halfSize,
+        y: scaledMouseY - halfSize,
+        width: cropSize,
+        height: cropSize
+    )
+    
+    Task {
+        await screenRecorder.updateCropRect(cropRect)
+    }
+}
 }
 
 #Preview {

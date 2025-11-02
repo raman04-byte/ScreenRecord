@@ -35,6 +35,17 @@ class CaptureEngine: NSObject, @unchecked Sendable {
     // Store the the startCapture continuation, so that you can cancel it when you call stopCapture().
     private var continuation: AsyncThrowingStream<CapturedFrame, Error>.Continuation?
     
+    var videoSampleHandler: ((CMSampleBuffer) -> Void)?{
+        didSet {
+            streamOutput?.videoSampleHandler = videoSampleHandler
+        }
+    }
+    var audioSampleHandler: ((CMSampleBuffer) -> Void)?{
+        didSet {
+            streamOutput?.audioSampleHandler = audioSampleHandler
+        }
+    }
+
     func startCapture(configuration: SCStreamConfiguration, filter: SCContentFilter) -> AsyncThrowingStream<CapturedFrame, Error> {
         AsyncThrowingStream<CapturedFrame, Error> { continuation in
             // The stream output object. Avoid reassigning it to a new object every time startCapture is called.
@@ -90,6 +101,8 @@ private class CaptureEngineStreamOutput: NSObject, SCStreamOutput, SCStreamDeleg
     
     var pcmBufferHandler: ((AVAudioPCMBuffer) -> Void)?
     var capturedFrameHandler: ((CapturedFrame) -> Void)?
+    var videoSampleHandler: ((CMSampleBuffer) -> Void)?
+    var audioSampleHandler: ((CMSampleBuffer) -> Void)?
     
     // Store the  startCapture continuation, so you can cancel it if an error occurs.
     private var continuation: AsyncThrowingStream<CapturedFrame, Error>.Continuation?
@@ -109,13 +122,15 @@ private class CaptureEngineStreamOutput: NSObject, SCStreamOutput, SCStreamDeleg
             // Create a CapturedFrame structure for a video sample buffer.
             guard let frame = createFrame(for: sampleBuffer) else { return }
             capturedFrameHandler?(frame)
+            videoSampleHandler?(sampleBuffer)
         case .audio:
             // Process audio as an AVAudioPCMBuffer for level calculation.
             handleAudio(for: sampleBuffer)
+            audioSampleHandler?(sampleBuffer)
         case .microphone:
             handleAudio(for: sampleBuffer)
         @unknown default:
-            fatalError("Encountered unknown stream output type: \(outputType)")
+            break
         }
     }
     

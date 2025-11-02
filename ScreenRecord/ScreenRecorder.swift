@@ -138,12 +138,13 @@ class ScreenRecorder: NSObject,
     @Published var isRecordingStream = false {
         didSet {
             if isRecordingStream {
-                try? initRecordingOutput()
                 Task {
-                    try await startRecordingOutput()
+                    try? await startVideoWriterRecording()
                 }
             } else {
-                try? stopRecordingOutput()
+                Task {
+                    try? await stopVideoWriterRecording()
+                }
             }
         }
     }
@@ -155,7 +156,7 @@ class ScreenRecorder: NSObject,
     private var audioMeterCancellable: AnyCancellable?
     
     var recordingOutputPath: String? = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).last
-    private var recordingOutput: SCRecordingOutput?
+    private var videoWriter: VideoWriter?
     
     // The object that manages the SCStream.
     private let captureEngine = CaptureEngine()
@@ -232,7 +233,8 @@ class ScreenRecorder: NSObject,
         guard isRunning else { return }
         await captureEngine.stopCapture()
         stopAudioMetering()
-        try? stopRecordingOutput()
+        // FIXED: Use await instead of try?
+        try? await stopVideoWriterRecording()
         removeMicrophoneOutput()
         isRunning = false
     }
@@ -283,40 +285,57 @@ class ScreenRecorder: NSObject,
         streamConfiguration.microphoneCaptureDeviceID = nil
     }
     
-    private func initRecordingOutput() throws {
-        dateFormatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
-        let currentDateTime = dateFormatter.string(from: Date())
-        if let recordingOutputPath = recordingOutputPath {
-            let outputPath = "\(recordingOutputPath)/recorded_output_\(currentDateTime).mp4"
-            let outputURL = URL(fileURLWithPath: outputPath)
-            let recordingConfiguration = SCRecordingOutputConfiguration()
-            recordingConfiguration.outputURL = outputURL
-            guard let recordingOutput = (SCRecordingOutput(configuration: recordingConfiguration, delegate: self) as SCRecordingOutput?)
-            else {
-                throw SCScreenRecordingError.failedToStartRecording("Failed to init recording output!")
-            }
-            logger.log("Initialized recording output with URL \(outputURL)")
-            self.recordingOutput = recordingOutput
+    private func startVideoWriterRecording() async throws {
+    dateFormatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
+    let currentDateTime = dateFormatter.string(from: Date())
+    
+    guard let recordingOutputPath = recordingOutputPath else {
+        throw SCScreenRecordingError.failedToStartRecording("No output path set")
+    }
+    
+    let outputPath = "\(recordingOutputPath)/recorded_output_\(currentDateTime).mp4"
+    let outputURL = URL(fileURLWithPath: outputPath)
+    
+    // Get current dimensions - always use full resolution for output
+    let recordingSize: CGSize
+    if captureType == .display, let display = selectedDisplay {
+        recordingSize = CGSize(width: display.width * scaleFactor, height: display.height * scaleFactor)
+    } else if captureType == .window, let window = selectedWindow {
+        recordingSize = CGSize(width: Int(window.frame.width) * 2, height: Int(window.frame.height) * 2)
+    } else {
+        recordingSize = CGSize(width: 1920, height: 1080)
+    }
+    
+    videoWriter = VideoWriter(outputURL: outputURL, videoSize: recordingSize)
+    try videoWriter?.startWriting()
+    
+    // Set initial crop if any
+    videoWriter?.updateTargetCrop(cropRect)
+    
+    // Set up handlers to receive samples
+    captureEngine.videoSampleHandler = { [weak self] sampleBuffer in
+        guard let self = self else { return }
+        Task {
+            try? await self.videoWriter?.appendVideoFrame(sampleBuffer, cropRect: self.cropRect)
         }
     }
     
-    private func startRecordingOutput() async throws {
-        guard let recordingOutput = self.recordingOutput else {
-            throw SCScreenRecordingError.failedToStartRecording("Recording output is empty!")
-        }
+    captureEngine.audioSampleHandler = { [weak self] sampleBuffer in
+        guard let self = self else { return }
+        try? self.videoWriter?.appendAudioBuffer(sampleBuffer)
+    }
+    
+    logger.log("Started video writer recording to \(outputURL)")
+}
+    
+    private func stopVideoWriterRecording() async throws {
+        captureEngine.videoSampleHandler = nil
+        captureEngine.audioSampleHandler = nil
         
-        try? await captureEngine.addRecordOutputToStream(recordingOutput)
-        logger.log("Added recording output \(String(describing: self.recordingOutput)) successfully to stream")
-        recordingOutputDidStartRecording(recordingOutput)
-    }
-    
-    private func stopRecordingOutput() throws {
-        if let recordingOutput = self.recordingOutput {
-            logger.log("Stopping recording output \(recordingOutput)")
-            try? captureEngine.stopRecordingOutputForStream(recordingOutput)
-            recordingOutputDidFinishRecording(recordingOutput)
-        }
-        self.recordingOutput = nil
+        try await videoWriter?.finishWriting()
+        videoWriter = nil
+        
+        logger.log("Stopped video writer recording")
     }
     
     private func updateEngine() {
@@ -330,6 +349,10 @@ class ScreenRecorder: NSObject,
     
     func updateCropRect(_ rect: CGRect?) async {
         self.cropRect = rect
+
+        // Update video writer's target crop for smooth transitions
+
+        videoWriter?.updateTargetCrop(rect)
         
         if captureType == .display, let display = selectedDisplay {
             self.contentSize = CGSize(width: display.width, height: display.height)
