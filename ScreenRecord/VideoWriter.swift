@@ -21,7 +21,7 @@ class VideoWriter {
     // Smooth transition properties
     private var currentCropRect: CGRect?
     private var targetCropRect: CGRect?
-    private let transitionFrames = 10 // Number of frames for smooth transition
+    private let transitionFrames = 20 // Number of frames for smooth transition
     private var transitionProgress = 0
     
     // Store full frame size

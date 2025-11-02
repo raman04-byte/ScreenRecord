@@ -84,7 +84,7 @@ struct PickerSettingsView: View {
                 HeaderView("Excluded Bundle IDs")
                 HStack {
                     TextField("\(Bundle.main.bundleIdentifier!)", text: $bundleIDToExclude)
-                        .frame(maxWidth: 300)
+                        .frame(maxWidth: 500)
                         .onSubmit {
                             addBundleID()
                         }
@@ -93,7 +93,7 @@ struct PickerSettingsView: View {
                     ScrollView {
                         BundleIDsListView(screenRecorder: screenRecorder)
                     }
-                    .frame(maxWidth: 300, maxHeight: 50)
+                    .frame(maxWidth: 500, maxHeight: 50)
                     .background(MaterialView())
                     .clipShape(.rect(cornerSize: CGSize(width: 1, height: 1)))
                     Button("Clear All Bundle IDs") {

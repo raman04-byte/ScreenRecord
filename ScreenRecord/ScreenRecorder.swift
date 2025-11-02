@@ -215,7 +215,7 @@ class ScreenRecorder: NSObject,
             setPickerUpdate(false)
             // Start the stream and await new video frames.
             for try await frame in captureEngine.startCapture(configuration: config, filter: filter) {
-                capturePreview.updateFrame(frame, cropRect: cropRect)
+                capturePreview.updateFrame(frame)
                 if contentSize != frame.size {
                     // Update the content size if it changed.
                     contentSize = frame.size
@@ -351,8 +351,12 @@ class ScreenRecorder: NSObject,
         self.cropRect = rect
 
         // Update video writer's target crop for smooth transitions
-
         videoWriter?.updateTargetCrop(rect)
+        
+        // Update preview layer to show the crop
+        await MainActor.run {
+            capturePreview.updateContentRect(rect)
+        }
         
         if captureType == .display, let display = selectedDisplay {
             self.contentSize = CGSize(width: display.width, height: display.height)

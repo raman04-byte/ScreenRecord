@@ -91,17 +91,13 @@ struct ScreenRecording: View {
     let mouseLocation = mouseTracker.mouseLocation
     let scaleFactor = mainScreen.backingScaleFactor
     
-    // CRITICAL: NSEvent.mouseLocation has origin at BOTTOM-LEFT
-    // Screen capture has origin at TOP-LEFT
-    // We must flip the Y coordinate!
-    
     let screenHeight = mainScreen.frame.height
     
     // Flip Y coordinate to convert from bottom-left to top-left origin
     let flippedMouseY = screenHeight - mouseLocation.y
     
     // Scale the crop size and position for retina displays
-    let cropSize: CGFloat = 300 * scaleFactor
+    let cropSize: CGFloat = 500 * scaleFactor
     let halfSize = cropSize / 2
     
     // Scale mouse coordinates to match the backing store resolution
